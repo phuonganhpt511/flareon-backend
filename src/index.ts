@@ -9,6 +9,8 @@ import dishesRouter from './routes/dish.route'
 import tableRouter from './routes/table.route'
 import orderRouter from './routes/order.route'
 import cartRouter from './routes/cart.route'
+import guestRouter from './routes/guest.route'
+
 
 import swaggerUi from 'swagger-ui-express'
 import swaggerJSDoc from 'swagger-jsdoc'
@@ -66,5 +68,7 @@ app.use('/category', cateRouter)
 app.use('/tables', tableRouter)
 app.use('/orders', orderRouter)
 app.use('/cart', cartRouter)
+app.use('/guests', guestRouter)
+
 
 app.listen(PORT, () => console.log(`Server running at http://${HOST}:${PORT}`))
