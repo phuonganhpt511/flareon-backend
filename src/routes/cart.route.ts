@@ -3,7 +3,8 @@ import {
   addToCartControler,
   createCartController,
   getOneCartController,
-  removeCartItemController
+  removeCartItemController,
+  updateQuantiCartItemControler
 } from '~/controllers/cart.controler'
 import { checkoutCartController } from '~/controllers/order.controler'
 
@@ -42,7 +43,7 @@ const router = express.Router()
  *       200:
  *         description: Thêm sản phẩm thành công và trả về giỏ hàng mới nhất
  *
- * /cart/{table_id}/{user_id}:
+ * /cart/cart-item/{table_id}/{user_id}:
  *   get:
  *     summary: Lấy giỏ hàng theo mã bàn và người dùng
  *     description: FE gọi API này để hiển thị danh sách món trong giỏ của bàn.
@@ -101,12 +102,38 @@ const router = express.Router()
  *     responses:
  *       200:
  *         description: Thanh toán thành công, trả về thông tin hóa đơn
+ * /cart/{cart_item_id}/quantity:
+ *   patch:
+ *     summary: Tăng giảm số lượng
+ *     description: FE gọi khi tăng giảm số lượng món ăn
+ *     tags: [Cart]
+ *     parameters:
+ *       - in: path
+ *         name: cart_item_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "671ac9..."
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               delta:
+ *                 type: number
+ *                 example: 1
+ *
+ *     responses:
+ *       200:
+ *         description: Thanh toán thành công, trả về thông tin hóa đơn
  */
 
 router.post('/', createCartController)
+router.get('/cart-item/:table_id/:user_id', getOneCartController)
 router.post('/add-item', addToCartControler)
-router.get('/:table_id/:user_id', getOneCartController)
-router.delete('/item/:cart_item_id', removeCartItemController)
 router.post('/checkout', checkoutCartController)
-
+router.patch('/:cart_item_id/quantity', updateQuantiCartItemControler)
+router.delete('/item/:cart_item_id', removeCartItemController)
 export default router

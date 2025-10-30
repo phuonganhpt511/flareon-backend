@@ -32,6 +32,14 @@ export enum ORDER_STATUS {
   COMPLETED = 'Completed'
 }
 
+export enum ORDER_ITEM_STATUS {
+  PENDING = 'Pending',
+  PROCESSING = 'Processing',
+  READY = 'Ready',
+  SERVED = 'Served',
+  CANCELED = 'Cancelled'
+}
+
 export enum TYPE_FEEDBACK {
   DISHES = 'Dish',
   SERVICE = 'Service',
@@ -49,4 +57,15 @@ export enum STATUS_INVOICES {
   PAID = 'paid',
   CANCELED = 'canceled',
   MERGED = 'merged'
+}
+
+export enum STATUS_PAYMENTS {
+  SUCCESS = 'Success',
+  FAILED = 'Failed',
+  REFUNDED = 'Refunded'
+}
+
+export enum PAYMENT_METHOD {
+  CASH = 'Cash',
+  BANK = 'Bank_Transfer'
 }

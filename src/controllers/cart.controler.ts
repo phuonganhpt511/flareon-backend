@@ -1,6 +1,12 @@
 import { Request, Response } from 'express'
 import { DEFAULT_MESSAGE } from '~/constants/message'
-import { addToCartService, createCartService, removeCartItemService, getOneCartService } from '~/services/cart.service'
+import {
+  addToCartService,
+  createCartService,
+  removeCartItemService,
+  getOneCartService,
+  updateQuantityCartItemSV
+} from '~/services/cart.service'
 
 export const createCartController = async (req: Request, res: Response) => {
   try {
@@ -78,7 +84,7 @@ export const getOneCartController = async (req: Request, res: Response) => {
       data: cartData
     })
   } catch (error: any) {
-    console.error('Error fetching cart:', error)
+    // console.error('Error fetching cart:', error)
     res.status(500).json({
       success: false,
       message: error.message || 'Internal Server Error'
@@ -105,6 +111,27 @@ export const removeCartItemController = async (req: Request, res: Response) => {
     })
   } catch (error: any) {
     console.error('Error removing cart item:', error)
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Internal Server Error'
+    })
+  }
+}
+
+export const updateQuantiCartItemControler = async (req: Request, res: Response) => {
+  try {
+    const { cart_item_id } = req.params
+    const { delta } = req.body
+    // console.log(cart_item_id)
+
+    if (delta === undefined) {
+      return res.status(400).json({ message: 'delta is required' })
+    }
+
+    const result = await updateQuantityCartItemSV(cart_item_id, delta)
+
+    return res.status(200).json(result)
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       message: error.message || 'Internal Server Error'

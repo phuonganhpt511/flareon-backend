@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
+import { ORDER_ITEM_STATUS } from '~/constants/enum'
 import { IOrderItem } from '~/interfaces/order-item.type'
 
 const orderItemSchema = new Schema<IOrderItem>(
@@ -27,6 +28,12 @@ const orderItemSchema = new Schema<IOrderItem>(
       type: Number,
       required: true,
       min: 0
+    },
+    status: {
+      type: String,
+      enum: ORDER_ITEM_STATUS,
+      required: true,
+      default: ORDER_ITEM_STATUS.PENDING
     },
     note: {
       type: String,

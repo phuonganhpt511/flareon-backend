@@ -1,4 +1,5 @@
 import { Types } from 'mongoose'
+import { ORDER_ITEM_STATUS } from '~/constants/enum'
 import { IDishes } from '~/interfaces/dish.type'
 
 export interface IOrderItem {
@@ -8,5 +9,6 @@ export interface IOrderItem {
   quantity: number
   price: number
   subtotal: number
+  status: ORDER_ITEM_STATUS
   note?: string
 }

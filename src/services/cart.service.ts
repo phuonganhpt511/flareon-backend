@@ -1,9 +1,11 @@
-import { ORDER_STATUS } from '~/constants/enum'
+import { ORDER_ITEM_STATUS, ORDER_STATUS, TABLE_STATUS } from '~/constants/enum'
 import { Cart_Item, Cart } from '../models/cart.model'
 import Order from '../models/order.model'
 import OrderItem from '../models/order-item.model'
 import Dish from '../models/dish.model'
+import Table from '../models/table.model'
 import { IDishes } from '~/interfaces/dish.type'
+import mongoose from 'mongoose'
 
 export const getOneCartService = async (table_id: string, user_id: string) => {
   // Tìm cart theo table_id
@@ -19,6 +21,7 @@ export const getOneCartService = async (table_id: string, user_id: string) => {
 
   // Format dữ liệu để trả ra frontend
   const formattedItems = items.map((item) => ({
+    cart_item_id: item._id,
     dish_name: item.dish_id?.dish_name,
     image: item.dish_id?.imageUrl || null,
     quantity: item.quantity,
@@ -135,10 +138,13 @@ export const checkoutCartService = async (user_id: string, table_id: string) => 
       quantity: item.quantity,
       price: item.price,
       subtotal: item.price * item.quantity,
+      // status: ORDER_ITEM_STATUS.PENDING,
       note: item.note
     }))
 
     await OrderItem.insertMany(orderItemsData)
+
+    await Table.findByIdAndUpdate(table_id, { status: TABLE_STATUS.OCCUPIED })
 
     // Xóa giỏ hàng sau khi đặt hàng
     await Cart_Item.deleteMany({ cart_id: cart._id })
@@ -180,17 +186,54 @@ export const checkoutCartService = async (user_id: string, table_id: string) => 
 
 export const removeCartItemService = async (id: string) => {
   // Tìm cart item để biết thuộc cart nào
-  const cartItem = await Cart_Item.findById(id)
-  if (!cartItem) return null
+  try {
+    const cartItem = await Cart_Item.findById(id)
+    if (!cartItem) return null
 
-  // Xóa item đó
-  await Cart_Item.findByIdAndDelete(id)
+    // Xóa item đó
+    await Cart_Item.findByIdAndDelete(id)
 
-  // Sau khi xóa, cập nhật lại total_price trong bảng Cart
-  const cartItems = await Cart_Item.find({ cart_id: cartItem.cart_id })
-  const total_price = cartItems.reduce((sum, item) => sum + (item.price || 0), 0)
+    // Sau khi xóa, cập nhật lại total_price trong bảng Cart
+    const cartItems = await Cart_Item.find({ cart_id: cartItem.cart_id })
+    const total_price = cartItems.reduce((sum, item) => sum + (item.price || 0), 0)
 
-  await Cart.findByIdAndUpdate(cartItem.cart_id, { total_price })
+    await Cart.findByIdAndUpdate(cartItem.cart_id, { total_price })
 
-  return { message: 'Item removed successfully', total_price }
+    return { message: 'Item removed successfully', total_price }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Error while remove cart'
+    }
+  }
+}
+
+export const updateQuantityCartItemSV = async (id: string, delta: number) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid cart item id' }
+    }
+
+    const updatedItem = await Cart_Item.findByIdAndUpdate(id, { $inc: { quantity: delta } }, { new: true })
+
+    if (!updatedItem) {
+      return { success: false, message: 'Cart item not found' }
+    }
+
+    if (updatedItem.quantity <= 0) {
+      await updatedItem.deleteOne()
+      return { success: true, message: 'Item removed from cart' }
+    }
+
+    return {
+      success: true,
+      message: 'Quantity updated successfully',
+      data: updatedItem
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Error update quantity cart_item'
+    }
+  }
 }

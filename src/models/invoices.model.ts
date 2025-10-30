@@ -5,8 +5,8 @@ import { IInvoice } from '~/interfaces/invoices.type'
 export const InvoicesSchema = new mongoose.Schema<IInvoice>(
   {
     user_id: { type: Schema.Types.ObjectId, ref: 'Users', default: null },
-    order_id: { type: Schema.Types.ObjectId, ref: 'Orders', required: true },
     table_id: { type: Schema.Types.ObjectId, ref: 'Table', required: true },
+    order_id: { type: Schema.Types.ObjectId, ref: 'Orders', required: true },
     total_amount: {
       type: Number,
       required: true,
