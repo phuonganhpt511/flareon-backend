@@ -11,6 +11,8 @@ import orderRouter from './routes/order.route'
 import orderItemRouter from './routes/order-item.route'
 import invoices from './routes/invoice.route'
 import cartRouter from './routes/cart.route'
+import guestRouter from './routes/guest.route'
+
 
 import swaggerUi from 'swagger-ui-express'
 import swaggerJSDoc from 'swagger-jsdoc'
@@ -70,5 +72,7 @@ app.use('/orders', orderRouter)
 app.use('/order-item', orderItemRouter)
 app.use('/invoices', invoices)
 app.use('/cart', cartRouter)
+app.use('/guests', guestRouter)
+
 
 app.listen(PORT, () => console.log(`Server running at http://${HOST}:${PORT}`))
