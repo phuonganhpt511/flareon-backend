@@ -47,8 +47,8 @@ export enum TYPE_FEEDBACK {
 }
 
 export enum STATUS_FEEDBACK {
-  PENDING = 'Pending',
-  RESOLVED = 'Resolved',
+  PENDING = 'Pending', //đang chờ giải quyết
+  RESOLVED = 'Resolved', //đã giải quyết
   REJECTED = 'Rejected'
 }
 

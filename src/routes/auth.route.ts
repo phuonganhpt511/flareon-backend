@@ -40,10 +40,10 @@ const router = express.Router()
  *       properties:
  *         email:
  *           type: string
- *           example: "phuonganhpham11@gmail.com"
+ *           example: "adminflareon@gmail.com"
  *         password:
  *           type: string
- *           example: "123456"
+ *           example: "123456789"
  *
  *     LoginResponse:
  *       type: object

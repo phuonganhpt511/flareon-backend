@@ -1,5 +1,6 @@
-import { ORDER_ITEM_STATUS } from '~/constants/enum'
+import { ORDER_ITEM_STATUS, ORDER_STATUS } from '~/constants/enum'
 import OrderItem from '../models/order-item.model'
+import Order from '../models/order.model'
 
 export const getOrderItemService = async (order_id: string) => {
   try {
@@ -71,15 +72,70 @@ export const updateSttOrderItemService = async (id: string, status: ORDER_ITEM_S
     orderItem!.status = status
     await orderItem!.save()
 
+    const orderId = orderItem?.order_id
+    const remaining = await OrderItem.countDocuments({
+      order_id: orderId,
+      status: { $ne: ORDER_ITEM_STATUS.SERVED }
+    })
+
+    if (remaining === 0) {
+      await Order.findByIdAndUpdate(orderId, { status: ORDER_STATUS.COMPLETED })
+    }
+
     return {
       success: true,
-      message: 'Order item status updated successfully',
+      message: 'Cập nhật trạng thái order item thành công',
       data: orderItem
     }
   } catch (error: any) {
     return {
       success: false,
       message: error.message || 'Error Update Status Order Item'
+    }
+  }
+}
+
+export const getOrderItemsByUserOrTableService = async (user_id?: string, table_id?: string) => {
+  try {
+    if (!user_id && !table_id) {
+      return {
+        success: false,
+        message: 'Thiếu user_id hoặc table_id'
+      }
+    }
+
+    let orders: any = []
+
+    // Nếu có user_id thì ưu tiên tìm theo user
+    if (user_id) {
+      orders = await Order.find({ user_id })
+    } else if (table_id) {
+      orders = await Order.find({ table_id })
+    }
+
+    if (orders.length === 0) {
+      return {
+        success: false,
+        message: 'Không tìm thấy đơn hàng nào'
+      }
+    }
+
+    const orderIds = orders.map((o: any) => o._id)
+
+    const orderItems = await OrderItem.find({ order_id: { $in: orderIds } })
+      .populate('dish_id', 'dish_name price imageUrl')
+      .populate('order_id', 'status table_id user_id')
+      .exec()
+
+    return {
+      success: true,
+      message: 'Lấy danh sách món ăn đã đặt thành công',
+      data: orderItems
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Lỗi khi lấy danh sách món ăn đã đặt'
     }
   }
 }

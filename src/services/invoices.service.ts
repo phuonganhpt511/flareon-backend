@@ -1,4 +1,4 @@
-import { STATUS_INVOICES } from '~/constants/enum'
+import { ORDER_STATUS, STATUS_INVOICES } from '~/constants/enum'
 import Invoices from '../models/invoices.model'
 import Order from '../models/order.model'
 import User from '../models/user.model'
@@ -82,6 +82,12 @@ export const createInvoiceService = async (payload: { order_id: string }) => {
       return {
         success: false,
         message: 'Order not found'
+      }
+    }
+    if (order.status !== ORDER_STATUS.COMPLETED) {
+      return {
+        success: false,
+        message: 'Invoice can only be created when the order is completed'
       }
     }
 
