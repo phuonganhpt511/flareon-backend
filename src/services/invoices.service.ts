@@ -1,9 +1,10 @@
-import { ORDER_STATUS, STATUS_INVOICES } from '~/constants/enum'
+import { ORDER_STATUS, STATUS_INVOICES, TABLE_STATUS } from '~/constants/enum' // ‼️ THÊM TABLE_STATUS
 import Invoices from '../models/invoices.model'
 import Order from '../models/order.model'
 import User from '../models/user.model'
 import Table from '../models/table.model'
 import OrderItem from '../models/order-item.model'
+import { updateStatusTableService } from './table.service'
 
 export const getAllInvoiceService = async () => {
   try {
@@ -17,7 +18,7 @@ export const getAllInvoiceService = async () => {
       }
     }
 
-    // Trả kết quả thành công
+  
     return {
       success: true,
       message: 'Get all invoices successfully',
@@ -32,6 +33,7 @@ export const getAllInvoiceService = async () => {
 }
 
 export const getDetailInvoicesService = async (id: string) => {
+
   try {
     const invoice = await Invoices.findById(id)
 
@@ -74,6 +76,7 @@ export const getDetailInvoicesService = async (id: string) => {
 }
 
 export const createInvoiceService = async (payload: { order_id: string }) => {
+
   try {
     const order = await Order.findById(payload.order_id)
     console.log(order)
@@ -117,6 +120,52 @@ export const createInvoiceService = async (payload: { order_id: string }) => {
     return {
       success: false,
       message: error.message || 'Error Get Invoices'
+    }
+  }
+}
+
+export const handlePaymentSuccessService = async (orderId: string) => {
+  try {
+   
+    const updatedInvoice = await Invoices.findOneAndUpdate(
+      { order_id: orderId }, 
+      {
+        $set: {
+          status: STATUS_INVOICES.PAID, 
+          updated_at: new Date()
+        }
+      },
+      { new: true } 
+    )
+
+    if (!updatedInvoice) {
+      return { success: false, message: 'Không tìm thấy hóa đơn để cập nhật' }
+    }
+
+   
+    const tableId = updatedInvoice.table_id
+    if (tableId) {
+      try {
+     
+        await updateStatusTableService(
+          tableId.toString(),
+          TABLE_STATUS.EMPTY 
+        )
+      } catch (tableError: any) {
+        console.error('Lỗi khi cập nhật trạng thái bàn:', tableError.message)
+        
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Thanh toán thành công. Hóa đơn và Bàn đã được cập nhật.',
+      data: updatedInvoice
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Lỗi khi xử lý thanh toán'
     }
   }
 }

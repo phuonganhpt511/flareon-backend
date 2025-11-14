@@ -1,7 +1,13 @@
 import { Request, Response } from 'express'
-import { createInvoiceService, getAllInvoiceService, getDetailInvoicesService } from '~/services/invoices.service'
+import {
+  createInvoiceService,
+  getAllInvoiceService,
+  getDetailInvoicesService,
+  handlePaymentSuccessService
+} from '~/services/invoices.service'
 
 export const getAllInvoiceController = async (req: Request, res: Response) => {
+
   try {
     const result = await getAllInvoiceService()
 
@@ -9,7 +15,7 @@ export const getAllInvoiceController = async (req: Request, res: Response) => {
       return res.status(500).json(result)
     }
 
-    // Nếu có dữ liệu
+
     return res.status(200).json(result)
   } catch (error: any) {
     return res.status(500).json({
@@ -20,6 +26,7 @@ export const getAllInvoiceController = async (req: Request, res: Response) => {
 }
 
 export const getDetailInvoiceControler = async (req: Request, res: Response) => {
+
   try {
     const { id } = req.params
 
@@ -42,6 +49,7 @@ export const getDetailInvoiceControler = async (req: Request, res: Response) => 
 }
 
 export const createInvoiceController = async (req: Request, res: Response) => {
+
   try {
     const { order_id } = req.body
 
@@ -66,6 +74,46 @@ export const createInvoiceController = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: error.message || 'Error creating invoice'
+    })
+  }
+}
+
+
+export const handleVnpayReturnController = async (req: Request, res: Response) => {
+  try {
+
+    const { vnp_ResponseCode, vnp_TxnRef } = req.query
+
+
+    if (vnp_ResponseCode === '00') {
+
+      const orderId = vnp_TxnRef as string
+      if (!orderId) {
+        return res.status(400).json({ success: false, message: 'Thiếu mã đơn hàng (vnp_TxnRef)' })
+      }
+
+
+      const result = await handlePaymentSuccessService(orderId)
+
+      if (!result.success) {
+        return res.status(500).json(result)
+      }
+
+
+      return res.status(200).json(result)
+    } else {
+
+      return res.status(400).json({
+        success: false,
+        message: 'Thanh toán thất bại hoặc bị hủy',
+        code: vnp_ResponseCode
+      })
+    }
+  } catch (error: any) {
+    console.error(error)
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Lỗi server khi xử lý VNPAY Return'
     })
   }
 }
