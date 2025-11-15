@@ -1,12 +1,14 @@
-import { ORDER_STATUS, STATUS_INVOICES, TABLE_STATUS } from '~/constants/enum' 
+import { ORDER_STATUS, STATUS_INVOICES, TABLE_STATUS } from '~/constants/enum' // ‼️ THÊM TABLE_STATUS
 import Invoices from '../models/invoices.model'
 import Order from '../models/order.model'
 import User from '../models/user.model'
 import Table from '../models/table.model'
 import OrderItem from '../models/order-item.model'
+// ‼️ THÊM IMPORT HÀM CẬP NHẬT BÀN (từ file table.service.ts của bạn)
 import { updateStatusTableService } from './table.service'
 
 export const getAllInvoiceService = async () => {
+  // ... (code gốc của bạn giữ nguyên)
   try {
     const invoices = await Invoices.find()
 
@@ -18,7 +20,7 @@ export const getAllInvoiceService = async () => {
       }
     }
 
-  
+    // Trả kết quả thành công
     return {
       success: true,
       message: 'Get all invoices successfully',
@@ -33,7 +35,7 @@ export const getAllInvoiceService = async () => {
 }
 
 export const getDetailInvoicesService = async (id: string) => {
-
+  // ... (code gốc của bạn giữ nguyên)
   try {
     const invoice = await Invoices.findById(id)
 
@@ -76,7 +78,7 @@ export const getDetailInvoicesService = async (id: string) => {
 }
 
 export const createInvoiceService = async (payload: { order_id: string }) => {
-
+  // ... (code gốc của bạn giữ nguyên)
   try {
     const order = await Order.findById(payload.order_id)
     console.log(order)
@@ -115,6 +117,7 @@ export const createInvoiceService = async (payload: { order_id: string }) => {
       success: true,
       message: 'Invoice created successfully',
       data: savedInvoice
+
     }
   } catch (error: any) {
     return {
@@ -124,36 +127,37 @@ export const createInvoiceService = async (payload: { order_id: string }) => {
   }
 }
 
+
 export const handlePaymentSuccessService = async (orderId: string) => {
   try {
-   
+    // Bước A: Cập nhật Hóa đơn (Invoice) thành "Đã thanh toán"
     const updatedInvoice = await Invoices.findOneAndUpdate(
-      { order_id: orderId }, 
+      { order_id: orderId }, // Tìm hóa đơn bằng order_id (chính là txnRef từ VNPay)
       {
         $set: {
-          status: STATUS_INVOICES.PAID, 
+          status: STATUS_INVOICES.PAID, // Enum 'paid'
           updated_at: new Date()
         }
       },
-      { new: true } 
+      { new: true } // Trả về document đã được cập nhật
     )
 
     if (!updatedInvoice) {
       return { success: false, message: 'Không tìm thấy hóa đơn để cập nhật' }
     }
 
-   
+    // Bước B: Cập nhật Bàn (Table) về "Còn trống"
     const tableId = updatedInvoice.table_id
     if (tableId) {
       try {
-     
+        // Gọi hàm từ table.service đã import ở trên
         await updateStatusTableService(
           tableId.toString(),
-          TABLE_STATUS.EMPTY 
+          TABLE_STATUS.EMPTY // Enum 'empty'
         )
       } catch (tableError: any) {
         console.error('Lỗi khi cập nhật trạng thái bàn:', tableError.message)
-        
+       
       }
     }
 
