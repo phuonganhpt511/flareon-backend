@@ -2,7 +2,8 @@ import express from 'express'
 import {
   createInvoiceController,
   getAllInvoiceController,
-  getDetailInvoiceControler
+  getDetailInvoiceControler,
+  handleVnpayReturnController
 } from '~/controllers/invoices.controler'
 
 const router = express.Router()
@@ -10,8 +11,8 @@ const router = express.Router()
 /**
  * @swagger
  * tags:
- *   name: Invoices
- *   description: API quản lý hóa đơn
+ *   - name: Invoices
+ *     description: API quản lý hóa đơn
  */
 
 /**
@@ -149,7 +150,7 @@ const router = express.Router()
  *                     status:
  *                       type: string
  *       400:
- *         description: Lỗi dữ liệu đầu vào (ví dụ order không tồn tại)
+ *         description: Lỗi dữ liệu đầu vào (ví dụ: order không tồn tại)
  *         content:
  *           application/json:
  *             schema:
@@ -166,5 +167,34 @@ const router = express.Router()
 router.get('/', getAllInvoiceController)
 router.get('/:id', getDetailInvoiceControler)
 router.post('/', createInvoiceController)
+
+/**
+ * @swagger
+ * /invoices/vnpay-return:
+ *   get:
+ *     summary: Xử lý callback từ VNPay sau khi thanh toán
+ *     tags: [Invoices]
+ *     parameters:
+ *       - in: query
+ *         name: vnp_ResponseCode
+ *         schema:
+ *           type: string
+ *         example: '00'
+ *         description: Mã phản hồi từ VNPay ('00' là thành công)
+ *       - in: query
+ *         name: vnp_TxnRef
+ *         schema:
+ *           type: string
+ *         example: '691fcc72c351936d54'
+ *         description: Mã đơn hàng (order_id)
+ *     responses:
+ *       200:
+ *         description: Xử lý thành công (Cập nhật hóa đơn và bàn)
+ *       400:
+ *         description: Thanh toán thất bại hoặc thiếu mã đơn hàng
+ *       500:
+ *         description: Lỗi server
+ */
+router.get('/vnpay-return', handleVnpayReturnController)
 
 export default router
